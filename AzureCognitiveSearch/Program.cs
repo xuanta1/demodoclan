@@ -1,9 +1,10 @@
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.Hosting;
+using System;
 
 namespace AzureCognitiveSearch
 {
@@ -16,21 +17,23 @@ namespace AzureCognitiveSearch
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureAppConfiguration((ctx, builder) =>
+                .ConfigureAppConfiguration((ctx, config) =>
                 {
-                    var keyVaultEndpoint = GetKeyVaultEndpoint();
-                    if (!string.IsNullOrEmpty(keyVaultEndpoint))
-                    {
-                        var azureServiceTokenProvider = new AzureServiceTokenProvider();
-                        var keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
-                        builder.AddAzureKeyVault(keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
-                    }
-                }
-                )
+                    var builtConfiguration = config.Build();
+
+                    string keyVault = builtConfiguration["KeyVault:Vault"];
+                    string tenantId = builtConfiguration["KeyVault:TenantId"];
+                    string clientId = builtConfiguration["KeyVault:ClientId"];
+                    string clientSecret = builtConfiguration["KeyVault:ClientSecret"];
+
+                    var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
+
+                    var client = new SecretClient(new Uri(keyVault), credential);
+                    config.AddAzureKeyVault(client, new AzureKeyVaultConfigurationOptions());
+                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
                 });
-        private static string GetKeyVaultEndpoint() => "https://xuantakeyvault.vault.azure.net/";
     }
 }

@@ -7,7 +7,6 @@ using Microsoft.Azure.Search.Models;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Collections.Generic;
@@ -33,7 +32,7 @@ namespace AzureCognitiveSearch.Controllers
         [HttpPost("upload")]
         public async Task<IActionResult> SaveProfileFileAsync(IFormFile file)
         {
-            var storageConnectionString = _configuration["ConnectionStrings:AzureStorageConnectionString"];
+            var storageConnectionString = _configuration["AzureStorageConnectionString"];
 
             if (CloudStorageAccount.TryParse(storageConnectionString, out CloudStorageAccount storageAccount))
             {
@@ -64,7 +63,7 @@ namespace AzureCognitiveSearch.Controllers
         [HttpGet("download")]
         public async Task<IActionResult> DownLoadFileAsync(string fileName)
         {
-            var storageConnectionString = _configuration["ConnectionStrings:AzureStorageConnectionString"];
+            var storageConnectionString = _configuration["AzureStorageConnectionString"];
 
             if (CloudStorageAccount.TryParse(storageConnectionString, out CloudStorageAccount storageAccount))
             {
@@ -95,9 +94,6 @@ namespace AzureCognitiveSearch.Controllers
         {
             try
             {
-                var keytest = _configuration["TokenKey"];
-                var keytest1 = _configuration["AzureStorageConnectionString"];
-
                 string searchServiceName = _configuration["SearchServiceName"];
                 string key = _configuration["SearchServiceAdminApiKey"];
                 string indexName = _configuration["IndexName"];
