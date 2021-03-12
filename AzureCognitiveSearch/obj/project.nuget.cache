@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "sQsqss9iWo4ZgOOdS4IcCAyvovizjp+68LyA35HEYKUfX8bhRuXeE+MaYPb8BPr3cjPaPGmbV22kuRqVUYr1nA==",
+  "dgSpecHash": "hJ83ZUEDI2FO0no9RHAXkpmKK9E2l0JUn3HVdNtfs3iKpPDM7b4/I5o1g/RLOpNxzifcS+4c4LJUxZdrEMXSdA==",
   "success": true,
-  "projectFilePath": "C:\\XuanTA\\DocLanDemo\\CognitiveSearchBlob\\AzureCognitiveSearch\\AzureCognitiveSearch\\AzureCognitiveSearch.csproj",
+  "projectFilePath": "C:\\XuanTA\\DocLanDemo\\demodoclan\\AzureCognitiveSearch\\AzureCognitiveSearch.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\xuanta\\.nuget\\packages\\microsoft.azure.keyvault\\3.0.5\\microsoft.azure.keyvault.3.0.5.nupkg.sha512",
     "C:\\Users\\xuanta\\.nuget\\packages\\microsoft.azure.keyvault.core\\2.0.4\\microsoft.azure.keyvault.core.2.0.4.nupkg.sha512",

@@ -6274,11 +6274,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\XuanTA\\DocLanDemo\\CognitiveSearchBlob\\AzureCognitiveSearch\\AzureCognitiveSearch\\AzureCognitiveSearch.csproj",
+      "projectUniqueName": "C:\\XuanTA\\DocLanDemo\\demodoclan\\AzureCognitiveSearch\\AzureCognitiveSearch.csproj",
       "projectName": "AzureCognitiveSearch",
-      "projectPath": "C:\\XuanTA\\DocLanDemo\\CognitiveSearchBlob\\AzureCognitiveSearch\\AzureCognitiveSearch\\AzureCognitiveSearch.csproj",
+      "projectPath": "C:\\XuanTA\\DocLanDemo\\demodoclan\\AzureCognitiveSearch\\AzureCognitiveSearch.csproj",
       "packagesPath": "C:\\Users\\xuanta\\.nuget\\packages\\",
-      "outputPath": "C:\\XuanTA\\DocLanDemo\\CognitiveSearchBlob\\AzureCognitiveSearch\\AzureCognitiveSearch\\obj\\",
+      "outputPath": "C:\\XuanTA\\DocLanDemo\\demodoclan\\AzureCognitiveSearch\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Microsoft\\Xamarin\\NuGet\\"
