@@ -7,6 +7,7 @@ using Microsoft.Azure.Search.Models;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Collections.Generic;
@@ -23,10 +24,12 @@ namespace AzureCognitiveSearch.Controllers
     public class HomeController : ControllerBase
     {
         private readonly IConfiguration _configuration;
+        private readonly ILogger<HomeController> _logger;
 
-        public HomeController(IConfiguration configuration)
+        public HomeController(IConfiguration configuration, ILogger<HomeController> logger)
         {
             _configuration = configuration;
+            _logger = logger;
         }
 
         [HttpPost("upload")]
@@ -94,6 +97,22 @@ namespace AzureCognitiveSearch.Controllers
         {
             try
             {
+                var interation = 5;
+                _logger.LogDebug($"Debug {interation}");
+                _logger.LogInformation($"Information {interation}");
+                _logger.LogWarning($"Warning{ interation}");
+                _logger.LogError($"Error {interation}");
+                _logger.LogCritical($"Critical {interation}");
+
+                try
+                {
+                    throw new NotImplementedException();
+                }
+                catch(Exception ex)
+                {
+                    _logger.LogError(ex, ex.Message);
+                }
+
                 string searchServiceName = _configuration["SearchServiceName"];
                 string key = _configuration["SearchServiceAdminApiKey"];
                 string indexName = _configuration["IndexName"];

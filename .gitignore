@@ -339,9 +339,7 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 
-*.suo
-*.user
 _ReSharper.*
-bin
-obj
+bin/
+obj/
 packages
