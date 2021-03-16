@@ -97,7 +97,7 @@ namespace AzureCognitiveSearch.Controllers
         {
             try
             {
-                var interation = 5;
+                var interation = 6;
                 _logger.LogDebug($"Debug {interation}");
                 _logger.LogInformation($"Information {interation}");
                 _logger.LogWarning($"Warning{ interation}");

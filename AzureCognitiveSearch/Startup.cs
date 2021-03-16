@@ -23,7 +23,7 @@ namespace AzureCognitiveSearch
             services.AddControllers();
             services.AddCors();
             services.AddMvc();
-            services.AddApplicationInsightsTelemetry();
+            services.AddApplicationInsightsTelemetry(Configuration["ApplicationInsights:InstrumentationKey"]);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
