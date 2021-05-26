@@ -32,6 +32,73 @@ namespace AzureCognitiveSearch.Controllers
             _logger = logger;
         }
 
+        [HttpPost("customIndex")]
+        public async Task<IActionResult> UploadCustomIndexSearch(IFormFile file)
+        {
+            string searchServiceName = _configuration["SearchServiceName"];
+            string adminApiKey = _configuration["SearchServiceAdminApiKey"];
+            SearchServiceClient serviceClient = new SearchServiceClient(searchServiceName, new SearchCredentials(adminApiKey));
+
+            //var dataSource = DataSource.AzureBlobStorage("gemvietnam", "DefaultEndpointsProtocol=https;AccountName=gemvietnam;AccountKey=7sGhjk+07j5LklNzRGOiKu/GAixRH/ic/3XfKbjRMVzQ6YAJ1IqiKYi+ucpEv27gyvZQw0b6SpzStKzbUInlVg==;EndpointSuffix=core.windows.net", "gem-documents");
+            ////create data source
+            //if (serviceClient.DataSources.Exists(dataSource.Name))
+            //{
+            //    serviceClient.DataSources.Delete(dataSource.Name);
+            //}
+            //serviceClient.DataSources.Create(dataSource);
+
+            // Create custom index
+            var definition = new Microsoft.Azure.Search.Models.Index()
+            {
+                Name = "tomcustomindex",
+                Fields = FieldBuilder.BuildForType<TomTestModel>()
+            };
+            //create Index
+            if (!serviceClient.Indexes.Exists(definition.Name))
+            {
+                serviceClient.Indexes.Create(definition);
+            }
+            //var index = serviceClient.Indexes.Create(definition);
+
+            if (CloudStorageAccount.TryParse("DefaultEndpointsProtocol=https;AccountName=gemvietnam;AccountKey=7sGhjk+07j5LklNzRGOiKu/GAixRH/ic/3XfKbjRMVzQ6YAJ1IqiKYi+ucpEv27gyvZQw0b6SpzStKzbUInlVg==;EndpointSuffix=core.windows.net", out CloudStorageAccount storageAccount))
+            {
+                try
+                {
+                    CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+
+                    CloudBlobContainer container = blobClient.GetContainerReference("gem-documents");
+
+                    await container.CreateIfNotExistsAsync();
+
+                    var fileBlob = container.GetBlockBlobReference(file.FileName);
+
+                    await fileBlob.UploadFromStreamAsync(file.OpenReadStream());
+
+                    var tomIndexsList = new List<TomTestModel>();
+                    tomIndexsList.Add(new TomTestModel
+                    {
+                        fileId = Guid.NewGuid().ToString(),
+                        blobURL = fileBlob.Uri.ToString(),
+                        fileText = fileBlob.DownloadTextAsync().Result,
+                        keyPhrases = "key phrases",
+                    });
+                    var batch = IndexBatch.MergeOrUpload(tomIndexsList);
+                    ISearchIndexClient indexClient = serviceClient.Indexes.GetClient("tomcustomindex");
+                    indexClient.Documents.Index(batch);
+
+                    return Ok(fileBlob.Uri);
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex.Message);
+                }
+
+            }
+
+
+            return StatusCode(StatusCodes.Status500InternalServerError);
+        }
+
         [HttpPost("upload")]
         public async Task<IActionResult> SaveProfileFileAsync(IFormFile file)
         {
@@ -121,8 +188,37 @@ namespace AzureCognitiveSearch.Controllers
 
                 ISearchIndexClient indexClient = serviceClient.Indexes.GetClient(indexName);
 
+                //SearchParameters searchParameters = new SearchParameters();
+                //searchParameters.HighlightFields = new List<string> { "content" };
+                //searchParameters.HighlightPostTag = "</b>";
+                //searchParameters.HighlightPreTag = "<b>";
+
+                //var result = await indexClient.Documents.SearchAsync(keyword, searchParameters);
+                //List<SearchResponse> responses = new List<SearchResponse>();
+
+                //foreach (var data in result.Results)
+                //{
+                //    SearchResponse response = new SearchResponse();
+                //    var path = data.Document["metadata_storage_path"].ToString();
+                //    path = path.Substring(0, path.Length - 1);
+
+                //    var byteData = WebEncoders.Base64UrlDecode(path);
+                //    response.FilePath = ASCIIEncoding.ASCII.GetString(byteData);
+                //    response.FileName = Path.GetFileNameWithoutExtension(response.FilePath);
+                //    response.FileText = data.Document["content"].ToString();
+                //    if (data.Highlights != null)
+                //    {
+                //        foreach (var high in data.Highlights["content"].ToList())
+                //        {
+                //            response.HighLightedText += high;
+                //        }
+                //    }
+
+                //    responses.Add(response);
+                //}
+
                 SearchParameters searchParameters = new SearchParameters();
-                searchParameters.HighlightFields = new List<string> { "content" };
+                searchParameters.HighlightFields = new List<string> { "fileText" };
                 searchParameters.HighlightPostTag = "</b>";
                 searchParameters.HighlightPreTag = "<b>";
 
@@ -132,16 +228,13 @@ namespace AzureCognitiveSearch.Controllers
                 foreach (var data in result.Results)
                 {
                     SearchResponse response = new SearchResponse();
-                    var path = data.Document["metadata_storage_path"].ToString();
-                    path = path.Substring(0, path.Length - 1);
-
-                    var byteData = WebEncoders.Base64UrlDecode(path);
-                    response.FilePath = ASCIIEncoding.ASCII.GetString(byteData);
+                    var path = data.Document["blobURL"].ToString();
+                    response.FilePath = path;
                     response.FileName = Path.GetFileNameWithoutExtension(response.FilePath);
-                    response.FileText = data.Document["content"].ToString();
+                    response.FileText = data.Document["fileText"].ToString();
                     if (data.Highlights != null)
                     {
-                        foreach (var high in data.Highlights["content"].ToList())
+                        foreach (var high in data.Highlights["fileText"].ToList())
                         {
                             response.HighLightedText += high;
                         }
