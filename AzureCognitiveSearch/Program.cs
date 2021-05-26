@@ -1,6 +1,7 @@
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -21,25 +22,29 @@ namespace AzureCognitiveSearch
                 .WriteTo.File(@"logs\applog.txt", rollingInterval: RollingInterval.Day)
                 .CreateLogger();
 
+            //TelemetryConfiguration configuration = TelemetryConfiguration.CreateDefault();
+            //configuration.InstrumentationKey = "";
+
+
             CreateHostBuilder(args).Build().Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureAppConfiguration((ctx, config) =>
-                {
-                    var builtConfiguration = config.Build();
+                //.ConfigureAppConfiguration((ctx, config) =>
+                //{
+                //    var builtConfiguration = config.Build();
 
-                    string keyVault = builtConfiguration["KeyVault:Vault"];
-                    string tenantId = builtConfiguration["KeyVault:TenantId"];
-                    string clientId = builtConfiguration["KeyVault:ClientId"];
-                    string clientSecret = builtConfiguration["KeyVault:ClientSecret"];
+                //    string keyVault = builtConfiguration["KeyVault:Vault"];
+                //    string tenantId = builtConfiguration["KeyVault:TenantId"];
+                //    string clientId = builtConfiguration["KeyVault:ClientId"];
+                //    string clientSecret = builtConfiguration["KeyVault:ClientSecret"];
 
-                    var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
+                //    var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
 
-                    var client = new SecretClient(new Uri(keyVault), credential);
-                    config.AddAzureKeyVault(client, new AzureKeyVaultConfigurationOptions());
-                })
+                //    var client = new SecretClient(new Uri(keyVault), credential);
+                //    config.AddAzureKeyVault(client, new AzureKeyVaultConfigurationOptions());
+                //})
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
