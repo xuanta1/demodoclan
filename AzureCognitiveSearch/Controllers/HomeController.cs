@@ -32,6 +32,40 @@ namespace AzureCognitiveSearch.Controllers
             _logger = logger;
         }
 
+        [HttpPost("removeCustomIndex")]
+        public async Task<IActionResult> RemoveCustomIndex(string key)
+        {
+            string searchServiceName = _configuration["SearchServiceName"];
+            string adminApiKey = _configuration["SearchServiceAdminApiKey"];
+            SearchServiceClient serviceClient = new SearchServiceClient(searchServiceName, new SearchCredentials(adminApiKey));
+
+            // Create custom index
+            var definition = new Microsoft.Azure.Search.Models.Index()
+            {
+                Name = "tomcustomindex",
+                Fields = FieldBuilder.BuildForType<TomTestModel>()
+            };
+            //create Index
+            if (!serviceClient.Indexes.Exists(definition.Name))
+            {
+                serviceClient.Indexes.Create(definition);
+            }
+            //var index = serviceClient.Indexes.Create(definition);
+
+            if (!string.IsNullOrEmpty(key))
+            {
+                var keys = new List<string>();
+                keys.Add(key);
+                var batch = IndexBatch.Delete("fileId", keys);
+                ISearchIndexClient indexClient = serviceClient.Indexes.GetClient("tomcustomindex");
+                indexClient.Documents.Index(batch);
+
+                return Ok("remove succeed");
+            }
+
+            return StatusCode(StatusCodes.Status500InternalServerError);
+        }
+
         [HttpPost("customIndex")]
         public async Task<IActionResult> UploadCustomIndexSearch(IFormFile file)
         {
@@ -77,7 +111,8 @@ namespace AzureCognitiveSearch.Controllers
                     var tomIndexsList = new List<TomTestModel>();
                     tomIndexsList.Add(new TomTestModel
                     {
-                        fileId = Guid.NewGuid().ToString(),
+                        //fileId = Guid.NewGuid().ToString(),
+                        fileId = "D956C6BE-C46B-4767-8E09-3A5EBD7A4698",
                         blobURL = fileBlob.Uri.ToString(),
                         fileText = fileBlob.DownloadTextAsync().Result,
                         keyPhrases = "key phrases",
