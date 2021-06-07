@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace AzureCognitiveSearch.Dto
 {
-    public class SearchResponse
+    public class DtoSearchResponse
     {
         public string FileName { get; set; }
         public string FilePath { get; set; }

@@ -2,12 +2,16 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Azure.ActiveDirectory.GraphClient;
+using Microsoft.Azure.ActiveDirectory.GraphClient.Extensions;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
+//using Microsoft.Graph;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Collections.Generic;
@@ -30,6 +34,79 @@ namespace AzureCognitiveSearch.Controllers
         {
             _configuration = configuration;
             _logger = logger;
+        }
+
+        [HttpGet("createAppRole")]
+        public async Task<IActionResult> CreateAppRole()
+        {
+            //IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
+            //        .Create("3a5022f7-db04-4b70-8e3b-636e04114a92")
+            //        .WithTenantId("938e704a-f4a7-49b7-9319-2cf16eb67c58")
+            //        .WithClientSecret("21bf68f3-72ec-4f56-9a6f-0c2a5cdeb732")
+            //        .Build();
+            //ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
+
+            //IPublicClientApplication publicClientApplication = PublicClientApplicationBuilder
+            //.Create("3a5022f7-db04-4b70-8e3b-636e04114a92")
+            //.WithAuthority(AzureCloudInstance.AzurePublic, AadAuthorityAudience.AzureAdMultipleOrgs)
+            //.Build();
+            //// Create an authentication provider by passing in a client application and graph scopes.
+            //DeviceCodeProvider authProvider = new DeviceCodeProvider(publicClientApplication, new[] { "User.Read" });
+            //// Create a new instance of GraphServiceClient with the authentication provider.
+            //GraphServiceClient graphClient = new GraphServiceClient(authProvider);
+
+
+
+            //var app = InteractiveAuthenticationProvider.CreateClientApplication("");
+            //var authProvider = new InteractiveAuthenticationProvider(app, new[] { "User.Read" });
+            //var graphClient = new GraphServiceClient(authProvider);
+            //var user = await graphClient.Me.Request().GetAsync();
+
+            //return Ok(user.DisplayName);
+
+            Guid _id = Guid.NewGuid();
+            List<String> _AllowedMemberTypes = new List<string> { "User" };
+            AppRole appRole = new AppRole
+            {
+                AllowedMemberTypes = _AllowedMemberTypes,
+                Description = "Admins can manage roles and perform all actions.",
+                DisplayName = "Global Admin",
+                Id = _id,
+                IsEnabled = true,
+                Value = "Admin"
+            };
+
+
+            try
+            {
+                var graphResourceId = "https://graph.windows.net";
+                var tenantId = "938e704a-f4a7-49b7-9319-2cf16eb67c58";
+                var clientId = "3a5022f7-db04-4b70-8e3b-636e04114a92";
+                var secretKey = "Qn_87k~JRLxaUj7B5-W6PJuk2~PVo9o24_";
+                var servicePointUri = new Uri(graphResourceId);
+                var serviceRoot = new Uri(servicePointUri, tenantId);
+                var activeDirectoryClient = new ActiveDirectoryClient(serviceRoot, async () => await GetAppTokenAsync(graphResourceId, tenantId, clientId, secretKey));
+
+                IPagedCollection<IApplication> pagedCollection = await activeDirectoryClient.Applications.Where(x => x.AppId == clientId).ExecuteAsync();
+                var appObject = pagedCollection.CurrentPage.ToList().FirstOrDefault();
+
+                appObject.AppRoles.Add(appRole as AppRole);
+                await appObject.UpdateAsync();
+                return Ok("succeed");
+            }
+            catch (Exception ex)
+            {
+                return Ok(ex.Message);
+            }
+
+        }
+
+        private static async Task<string> GetAppTokenAsync(string graphResourceId, string tenantId, string clientId, string secretKey)
+        {
+            string aadInstance = "https://login.microsoftonline.com/" + tenantId + "/oauth2/token";
+            AuthenticationContext authenticationContext = new AuthenticationContext(aadInstance, false);
+            var result = await authenticationContext.AcquireTokenAsync(graphResourceId, new ClientCredential(clientId, "0b67d41b-976c-45e3-b610-396f9e96fa69"));
+            return result.AccessToken;
         }
 
         [HttpPost("removeCustomIndex")]
@@ -258,11 +335,11 @@ namespace AzureCognitiveSearch.Controllers
                 searchParameters.HighlightPreTag = "<b>";
 
                 var result = await indexClient.Documents.SearchAsync(keyword, searchParameters);
-                List<SearchResponse> responses = new List<SearchResponse>();
+                List<DtoSearchResponse> responses = new List<DtoSearchResponse>();
 
                 foreach (var data in result.Results)
                 {
-                    SearchResponse response = new SearchResponse();
+                    DtoSearchResponse response = new DtoSearchResponse();
                     var path = data.Document["blobURL"].ToString();
                     response.FilePath = path;
                     response.FileName = Path.GetFileNameWithoutExtension(response.FilePath);
